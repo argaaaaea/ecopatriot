@@ -12,26 +12,6 @@ from dashscope import Application
 
 dashscope.base_http_api_url = 'https://dashscope-intl.aliyuncs.com/api/v1'
 
-@csrf_exempt
-def call_agent_api(request):
-  body = json.loads(request.body)
-  topics = body.get('topics')
-  num_of_q = body.get('number_of_questions')
-  response = Application.call(
-    app_id="8070f070fb4142d0ad0b5cbf9bcfa21e",
-    prompt=f"Tolong buatkan {num_of_q} pertanyaan seputar {topics}",
-    api_key="sk-680812113955499b9a7dde188764e692"  
-  )
-  print(response.status_code)
-  if response.status_code != HTTPStatus.OK:
-      print('request_id=%s, code=%s, message=%s\n' % (response.request_id, response.status_code, response.message))
-      return JsonResponse({'output': 'gagal'})
-  else:
-    print(response.output)
-    json_data = json.loads(f"[{response.output.text}]")
-    return JsonResponse({'output': json_data})
-  
-
 def get_all_users(request):
   all_users = Users.objects.all()
   serialized_data = serializers.serialize('json', all_users)
@@ -189,6 +169,64 @@ def update_results(request, id_results):
   old_results.save()
   response_data = model_to_dict(old_results)
   return JsonResponse(response_data, safe=False)
+
+@csrf_exempt
+def save_quiz(request):
+  print(request.body)
+  body = json.loads(request.body)
+  quiz_data = body.get("quiz")
+  try:
+    quiz = Quizzes.objects.create(title=quiz_data.get("title"))
+    for q in quiz_data.get("questions"):
+      question = Questions.objects.create(questionText=q.get("questionText"), quizId=quiz)
+      for a in q.get("options"):
+        answer = Answers.objects.create(answerText=a.get("answerText"), isCorrect=a.get("isCorrect"), questionId=question)
+    return JsonResponse({"message": "Berhasil", "status": "200"}, safe=False)
+  except:
+    return JsonResponse({"message": "Gagal", "status": "500"})
+  
+@csrf_exempt
+def recommend_question(request):
+  body = json.loads(request.body)
+  question = body.get("questionText")
+    
+  response = Application.call(
+    app_id="8070f070fb4142d0ad0b5cbf9bcfa21e",
+    prompt=f"Tolong berikan rekomendasi perbaikan dari soal \"{question}\"",
+    api_key="sk-680812113955499b9a7dde188764e692"  
+  )
+  
+  if response.status_code != HTTPStatus.OK:
+      print('request_id=%s, code=%s, message=%s\n' % (response.request_id, response.status_code, response.message))
+      return JsonResponse({'output': 'gagal'})
+  else:
+    print(response.output)
+    json_data = json.loads(f"[{response.output.text}]")
+    return JsonResponse({'output': json_data})
+    
+@csrf_exempt
+def call_agent_api(request):
+  body = json.loads(request.body)
+  topics = body.get('topics')
+  num_of_q = body.get('number_of_questions')
+  response = Application.call(
+    app_id="8070f070fb4142d0ad0b5cbf9bcfa21e",
+    prompt=f"Tolong buatkan {num_of_q} pertanyaan seputar {topics}",
+    api_key="sk-680812113955499b9a7dde188764e692"  
+  )
+  print(response.status_code)
+  if response.status_code != HTTPStatus.OK:
+      print('request_id=%s, code=%s, message=%s\n' % (response.request_id, response.status_code, response.message))
+      return JsonResponse({'output': 'gagal'})
+  else:
+    print(response.output)
+    json_data = json.loads(f"[{response.output.text}]")
+    return JsonResponse({'output': json_data})
+  
+
+  
+    
+
 
 
 

@@ -23,6 +23,8 @@ urlpatterns = [
     path("results/<int:id_results>", views.get_one_results, name="get_results"),
     path("results/add", views.add_results, name="add_results"),
     path("results/update/<int:id_results>", views.update_results, name="update_results"),
-    path("generate_questions", views.call_agent_api, name="generate_questions")
+    path("generate_questions", views.call_agent_api, name="generate_questions"),
+    path("save_quiz", views.save_quiz, name="save_quiz"),
+    path("recommend_question", views.recommend_question, name="recommend_questions")
     
 ]
